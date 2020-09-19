@@ -6,6 +6,14 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
 
+import matplotlib
+#バックエンドを指定
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import io
+from django.http import HttpResponse
+
+
 # Create your views here.
 
 def signupfunc(request):
@@ -70,3 +78,29 @@ class BoardCreate(CreateView):
     model = BoardModel
     fields = ('title','content','author','images')
     success_url = reverse_lazy('list')
+
+
+#グラフ作成
+def setPlt():
+    x = ["07/01", "07/02", "07/03", "07/04", "07/05", "07/06", "07/07"]
+    y = [9000000, 5, 0, 5, 6, 10, 2]
+    plt.bar(x, y, color='#00d5ff')
+    plt.title(r"$\bf{Running Trend  -2020/07/07}$", color='#3407ba')
+    plt.xlabel("Date")
+    plt.ylabel("km")
+
+# SVG化
+def plt2svg():
+    buf = io.BytesIO()
+    plt.savefig(buf, format='svg', bbox_inches='tight')
+    s = buf.getvalue()
+    buf.close()
+    return s
+
+# 実行するビュー関数
+def get_svg(request):
+    setPlt()  
+    svg = plt2svg()  #SVG化
+    plt.cla()  # グラフをリセット
+    response = HttpResponse(svg, content_type='image/svg+xml')
+    return response
